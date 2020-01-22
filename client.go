@@ -2,6 +2,7 @@ package pdfshift
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -27,12 +28,12 @@ func New(key string) *PDFShift {
 }
 
 // Convert sends a request to PDFShift to preform the conversion
-func (c *PDFShift) Convert(rb *PDFBuilder) ([]byte, error) {
+func (c *PDFShift) Convert(ctx context.Context, rb *PDFBuilder) ([]byte, error) {
 	encoded, err := rb.build().convert()
 	if err != nil {
 		return nil, vice.Wrap(err, vice.InvalidArgument, "unable to marshal conversion message")
 	}
-	request, err := http.NewRequest("POST", pdfShiftURL, bytes.NewBuffer(encoded))
+	request, err := http.NewRequestWithContext(ctx, "POST", pdfShiftURL, bytes.NewBuffer(encoded))
 	if err != nil {
 		return nil, vice.Wrap(err, vice.Internal, "unable to generate conversion request")
 	}
