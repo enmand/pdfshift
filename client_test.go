@@ -22,15 +22,10 @@ func Test_Convert(t *testing.T) {
 	badBuilder := NewPDFBuilder()
 	badBuilder.message["s"] = func() {}
 
-	type Error struct {
-		Error string `json:"error"`
-	}
 	badResp, _ := json.Marshal(struct {
-		Error Error `json:"error"`
+		Error string `json:"error"`
 	}{
-		Error: Error{
-			Error: "bad request",
-		},
+		Error: "bad request",
 	})
 
 	type server struct {
