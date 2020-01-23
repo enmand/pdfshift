@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -39,8 +38,8 @@ func (c *PDFShift) Convert(ctx context.Context, rb *PDFBuilder) ([]byte, error) 
 	if err != nil {
 		return nil, vice.Wrap(err, vice.Internal, "unable to generate conversion request")
 	}
-	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add("Authorization", fmt.Sprintf("Basic %s", c.apiKey))
+	request.Header.Set("Content-Type", "application/json")
+	request.SetBasicAuth(c.apiKey, "")
 
 	resp, err := c.client.Do(request)
 	if err != nil {
@@ -56,10 +55,8 @@ func (c *PDFShift) Convert(ctx context.Context, rb *PDFBuilder) ([]byte, error) 
 		}
 
 		errMsg := "internal conversion error"
-		if errMap, ok := respErr["error"].(map[string]interface{}); ok {
-			if err, ok := errMap["error"].(string); ok {
-				errMsg = err
-			}
+		if err, ok := respErr["error"].(string); ok {
+			errMsg = err
 		}
 
 		return nil, vice.New(vice.Internal, errMsg)
