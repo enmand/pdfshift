@@ -55,7 +55,7 @@ func (a Auth) encode() map[string]string {
 
 // Auth sets BASIC Auth headers to use when making a URL conversion request
 func (rb *PDFBuilder) Auth(a Auth) *PDFBuilder {
-	return rb.set("auth", a)
+	return rb.set("auth", a.encode())
 }
 
 // Cookie represents an HTTP Cookie
@@ -108,9 +108,13 @@ type Watermark struct {
 	Rotate  int
 }
 
-func (w Watermark) encode() []byte {
-	b, _ := json.Marshal(w)
-	return b
+func (w Watermark) encode() map[string]interface{} {
+	return map[string]interface{}{
+		"image":    w.Image,
+		"offset_x": w.OffsetX,
+		"offset_y": w.OffsetY,
+		"rotate":   w.Rotate,
+	}
 }
 
 // Watermark adds a watermark to a converted document
