@@ -171,8 +171,8 @@ func (rb *PDFBuilder) Protection(p Protection) *PDFBuilder {
 	return rb.set("protection", p.encode())
 }
 
-// Sandbox sets the PDF conversion to happen in the PDFShift sandbox
-func (rb *PDFBuilder) Sandbox(enabled bool) *PDFBuilder {
+// sandbox sets the PDF conversion to happen in the PDFShift sandbox
+func (rb *PDFBuilder) sandbox(enabled bool) *PDFBuilder {
 	return rb.set("sandbox", enabled)
 }
 

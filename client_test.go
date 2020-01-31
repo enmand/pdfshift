@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
 func Test_New(t *testing.T) {
-	p := New("test key")
+	p := New("test key", true)
 
 	if p == nil {
 		t.Error("invalid PDFShift client")
@@ -28,23 +29,41 @@ func Test_Convert(t *testing.T) {
 		Error: "bad request",
 	})
 
+	type fields struct {
+		sandbox bool
+	}
 	type server struct {
 		statusCode int
 		resp       []byte
 	}
 	type expectation struct {
-		want []byte
-		err  error
+		want    []byte
+		reqBody string
+		err     error
 	}
 	tcs := map[string]struct {
+		fields   fields
 		builder  *PDFBuilder
 		server   server
 		expected expectation
 	}{
-		"ok": {},
+		"ok": {
+			expected: expectation{
+				reqBody: `{"sandbox":false}`,
+			},
+		},
+		"ok - sandbox": {
+			fields: fields{
+				sandbox: true,
+			},
+			expected: expectation{
+				reqBody: `{"sandbox":true}`,
+			},
+		},
 		"bad message": {
 			builder: badBuilder,
 			expected: expectation{
+				reqBody: `{"sandbox":false}`,
 				err: fmt.Errorf(
 					"unable to marshal conversion message: json: unsupported type: func()",
 				),
@@ -55,7 +74,8 @@ func Test_Convert(t *testing.T) {
 				statusCode: 401,
 			},
 			expected: expectation{
-				err: fmt.Errorf("unable to decode error response: EOF"),
+				reqBody: `{"sandbox":false}`,
+				err:     fmt.Errorf("unable to decode error response: EOF"),
 			},
 		},
 		"server error": {
@@ -64,7 +84,8 @@ func Test_Convert(t *testing.T) {
 				resp:       badResp,
 			},
 			expected: expectation{
-				err: fmt.Errorf("bad request"),
+				reqBody: `{"sandbox":false}`,
+				err:     fmt.Errorf("bad request"),
 			},
 		},
 	}
@@ -72,7 +93,7 @@ func Test_Convert(t *testing.T) {
 		if tc.builder == nil {
 			tc.builder = NewPDFBuilder()
 		}
-		c := New("test key")
+		c := New("test key", tc.fields.sandbox)
 		ctx := context.Background()
 
 		s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
@@ -83,6 +104,11 @@ func Test_Convert(t *testing.T) {
 			rw.WriteHeader(status)
 			if tc.server.resp != nil {
 				rw.Write(tc.server.resp)
+			}
+
+			bs, _ := ioutil.ReadAll(req.Body)
+			if string(bs) != tc.expected.reqBody {
+				t.Errorf("request bodies do not match: want %s, got %s", tc.expected.reqBody, bs)
 			}
 		}))
 		defer s.Close()
