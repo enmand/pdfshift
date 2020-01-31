@@ -212,7 +212,7 @@ func TestPDFBuilder_Protection(t *testing.T) {
 
 func TestPDFBuilder_Sandbox(t *testing.T) {
 	p := NewPDFBuilder()
-	p.Sandbox(true)
+	p.sandbox(true)
 	b := p.build()
 
 	if b["sandbox"].(bool) != true {
