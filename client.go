@@ -14,23 +14,25 @@ const pdfShiftURL = "https://api.pdfshift.io/v2/convert"
 
 // PDFShift represents the
 type PDFShift struct {
-	apiKey string
-	client *http.Client
-	url    string
+	apiKey  string
+	client  *http.Client
+	sandbox bool
+	url     string
 }
 
 // New returns a new PDFShift client
-func New(key string) *PDFShift {
+func New(key string, sandbox bool) *PDFShift {
 	return &PDFShift{
-		apiKey: key,
-		client: &http.Client{},
-		url:    pdfShiftURL,
+		apiKey:  key,
+		client:  &http.Client{},
+		sandbox: sandbox,
+		url:     pdfShiftURL,
 	}
 }
 
 // Convert sends a request to PDFShift to preform the conversion
 func (c *PDFShift) Convert(ctx context.Context, rb *PDFBuilder) ([]byte, error) {
-	encoded, err := rb.build().convert()
+	encoded, err := rb.sandbox(c.sandbox).build().convert()
 	if err != nil {
 		return nil, vice.Wrap(err, vice.InvalidArgument, "unable to marshal conversion message")
 	}
