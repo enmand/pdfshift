@@ -12,6 +12,11 @@ import (
 
 const pdfShiftURL = "https://api.pdfshift.io/v2/convert"
 
+// Client represents the PDFShift client
+type Client interface {
+	Convert(context.Context, *PDFBuilder) ([]byte, error)
+}
+
 // PDFShift represents the
 type PDFShift struct {
 	apiKey  string
@@ -21,7 +26,7 @@ type PDFShift struct {
 }
 
 // New returns a new PDFShift client
-func New(key string, sandbox bool) *PDFShift {
+func New(key string, sandbox bool) Client {
 	return &PDFShift{
 		apiKey:  key,
 		client:  &http.Client{},
