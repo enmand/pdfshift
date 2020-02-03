@@ -93,7 +93,7 @@ func Test_Convert(t *testing.T) {
 		if tc.builder == nil {
 			tc.builder = NewPDFBuilder()
 		}
-		c := New("test key", tc.fields.sandbox)
+		c := New("test key", tc.fields.sandbox).(*PDFShift)
 		ctx := context.Background()
 
 		s := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
